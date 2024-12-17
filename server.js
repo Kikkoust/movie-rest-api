@@ -186,3 +186,45 @@ app.post('/registeredusers', async (req, res) => {
       res.status(500).send('Error registering user');
     }
   });
+
+
+//REVIEWS!!!!!!!!!!!!!!
+
+//add reviews
+app.post('/reviews', async (req, res) => {
+  const { username, review_star, review_text, movie_id } = req.body;
+
+  //all fields filled
+  if (!username || !review_star || !review_text || !movie_id) {
+    return res.status(400).send('Fill all fields!');
+  }
+
+  //stars 0-5
+  if (review_star < 0 || review_star > 5) {
+    return res.status(400).send('Stars must be 0-5! :)');
+  }
+
+  try {
+    //checking that user is registered
+    const userResult = await client.query('SELECT * FROM registered_user WHERE username = $1', [username]);
+    
+    if (userResult.rows.length === 0) {
+      return res.status(400).send('Please, register first! :)');
+    }
+
+    //add review
+    const result = await client.query(
+      `INSERT INTO review (username, review_star, review_text, movie_id)
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [username, review_star, review_text, movie_id]
+    );
+
+    res.status(201).json({
+      message: 'Review added! :)',
+      review: result.rows[0]
+    });
+  } catch (err) {
+    console.error('Error adding review', err);
+    res.status(500).send('Error adding review');
+  }
+});
