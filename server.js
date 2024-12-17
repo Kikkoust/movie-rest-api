@@ -30,18 +30,22 @@ client.connect().then(() => {
 });
 
 app.get('/', (req, res) => {
-  res.send('<h1>This is the movie API made by MM TIK23SP!</h1><br /><p>/movies</p><br /><p>/genres</p>');
+  res.send('<h1>This is the movie API made by MM TIK23SP!</h1><br /><p>/movies</p><br /><p>/movies?page=2</p><br /><p>/genres</p>');
 });
 
 //MOVIES!!!!!!!!!!!!!!
 
 //get movies
 app.get('/movies', async (req, res) => {
+  const page = parseInt(req.query.page) || 1; //default page
+  const limit = 10; //movies on page
+  const offset = (page - 1) * limit;
+
   try {
-    const result = await client.query('SELECT * FROM movie');
+    const result = await client.query('SELECT * FROM movie LIMIT $1 OFFSET $2', [limit, offset]);
     res.json(result.rows);
   } catch (err) {
-    console.error('Error', err);
+    console.error('Error ', err);
     res.status(500).send('Error');
   }
 });
