@@ -30,7 +30,7 @@ client.connect().then(() => {
 });
 
 app.get('/', (req, res) => {
-  res.send('<h1>This is the movie API made by MM TIK23SP!</h1><br /><p>/movies</p><br /><p>/movies?page=2</p><br /><p>/genres</p>');
+  res.send('<h1>This is the movie API made by MM TIK23SP!</h1><br /><p>/movies</p><br /><p>/movies?page=(page number)</p><br /><p>/movies/search?keyword=(keyword)</p><br /><p>/genres</p>');
 });
 
 //MOVIES!!!!!!!!!!!!!!
@@ -47,6 +47,29 @@ app.get('/movies', async (req, res) => {
   } catch (err) {
     console.error('Error ', err);
     res.status(500).send('Error');
+  }
+});
+
+//get movies with keyword 
+app.get('/movies/search', async (req, res) => {
+  const keyword = req.query.keyword;
+
+  if (!keyword) {
+    return res.status(400).send('Use keyword to search!');
+  }
+
+  try {
+    const query = `SELECT * FROM movie WHERE movie_name ILIKE $1`; //ILIKE = case sensitivity doesn't matter
+    const result = await client.query(query, [`%${keyword}%`]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).send('Zero movies found with this keyword.');
+    }
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error searching with keyword', err);
+    res.status(500).send('Error searching movies.');
   }
 });
 
