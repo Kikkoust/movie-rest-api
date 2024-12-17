@@ -1,43 +1,37 @@
 import express from 'express';
-import dotenv from 'dotenv';
 import pg from 'pg';
-
-const { Client } = pg;
+import dotenv from 'dotenv';
 
 dotenv.config();
 
+
 const app = express();
-const port = 3001;
+
+const {Client} = pg;
+
+app.listen(3001, () => {
+  console.log('Server is running');
+});
 
 const client = new Client({
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
-  });
-
-client.connect().then(() => {
-    console.log('Connected to PostgreSQL database');
-}).catch(err => {
-    console.error('Connection error', err.stack);
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
+  host: process.env.DB_HOST,
+  database: process.env.DB_DATABASE
 });
 
+connect();
 
+async function connect() {
 
+  try{
+    await client.connect();
+    await client.query("");
+    console.log('Database connected');
+  } catch (error){
+      console.log(error);
 
-app.get('/users', async (req, res) => {
-    try {
-      const result = await client.query('SELECT * FROM users'); // Hakee kaikki käyttäjät
-      res.json(result.rows); // Palautetaan tiedot JSON-muodossa
-    } catch (error) {
-      console.error('Database query failed', error);
-      res.status(500).json({ error: 'Database query failed' });
-    }
-});
+  }
 
-
-
-app.listen(port, () => {
-    console.log(`The server is running on http://localhost:${port}`);
-});
+};
