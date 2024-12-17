@@ -21,17 +21,22 @@ const client = new Client({
   database: process.env.DB_DATABASE
 });
 
-connect();
+client.connect().then(() => {
+  console.log('Database connected');
+}).catch(err => {
+  console.log('Error connecting to database', err);
+});
 
-async function connect() {
+app.get('/', (req, res) => {
+  res.send('<h1>This is the movie API made by MM TIK23SP!</h1><br /><p>/movies</p>');
+});
 
-  try{
-    await client.connect();
-    await client.query("");
-    console.log('Database connected');
-  } catch (error){
-      console.log(error);
-
+app.get('/movies', async (req, res) => {
+  try {
+    const result = await client.query('SELECT * FROM movie');
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error', err);
+    res.status(500).send('Error');
   }
-
-};
+});
