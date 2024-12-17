@@ -161,6 +161,10 @@ app.post('/genres', express.json(), async (req, res) => {
 
 //USER!!!!!!!!!!!!!!!!!!
 
+app.get('/registeredusers', (req, res) => {
+  res.send('<h1>Nothing special here, sorry!</h>');
+});
+
 //add user
 app.post('/registeredusers', async (req, res) => {
   const { first_name, last_name, username, password, user_birthyear } = req.body;
@@ -189,6 +193,10 @@ app.post('/registeredusers', async (req, res) => {
 
 
 //REVIEWS!!!!!!!!!!!!!!
+
+app.get('/reviews', (req, res) => {
+  res.send('<h1>Nothing special here, sorry!</h>');
+});
 
 //add reviews
 app.post('/reviews', async (req, res) => {
@@ -226,5 +234,48 @@ app.post('/reviews', async (req, res) => {
   } catch (err) {
     console.error('Error adding review', err);
     res.status(500).send('Error adding review');
+  }
+});
+
+
+//FAVORITES!!!!!!!!!!!!!!!!!!
+
+//favorite movie
+app.post('/favorites', async (req, res) => {
+  const { username, movie_id } = req.body;
+
+  //check that both fields are filled
+  if (!username || !movie_id) {
+    return res.status(400).send('Fill both fields, username and movie_id!');
+  }
+
+  try {
+    //check user is registered
+    const userResult = await client.query(
+      'SELECT user_id FROM registered_user WHERE username = $1', [username]
+    );
+
+    //register first message
+    if (userResult.rows.length === 0) {
+      return res.status(404).send('Register first! :)');
+    }
+
+    //user_id from user
+    const user_id = userResult.rows[0].user_id;
+
+    //add favorite movie
+    const result = await client.query(
+      'INSERT INTO favorite_movie (user_id, movie_id) VALUES ($1, $2) RETURNING *',
+      [user_id, movie_id]
+    );
+
+    res.status(201).json({
+      message: 'Favorite movie added! :)',
+      favorite: result.rows[0]
+    });
+
+  } catch (err) {
+    console.error('Error adding favorite movie', err);
+    res.status(500).send('Error adding favorite movie');
   }
 });
