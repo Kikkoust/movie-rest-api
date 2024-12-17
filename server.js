@@ -33,8 +33,9 @@ app.get('/', (req, res) => {
   res.send('<h1>This is the movie API made by MM TIK23SP!</h1><br /><p>/movies</p><br /><p>/genres</p>');
 });
 
-//MOVIES 
+//MOVIES!!!!!!!!!!!!!!
 
+//get movies
 app.get('/movies', async (req, res) => {
   try {
     const result = await client.query('SELECT * FROM movie');
@@ -45,6 +46,7 @@ app.get('/movies', async (req, res) => {
   }
 });
 
+// get movie by id
 app.get('/movies/:id', async (req, res) => {
   const movieId = req.params.id;
   try {
@@ -63,10 +65,10 @@ app.get('/movies/:id', async (req, res) => {
   }
 });
 
+//add movie
 app.post('/movies', async (req, res) => {
   const { movie_name, release_year, genre_id } = req.body;
 
-  //add movie
   try {
     const result = await client.query(
       'INSERT INTO movie (movie_name, release_year, genre_id) VALUES ($1, $2, $3) RETURNING *',
@@ -80,7 +82,28 @@ app.post('/movies', async (req, res) => {
   }
 });
 
-// GENRES
+// remove movie
+app.delete('/movies/:id', async (req, res) => {
+  const movieId = req.params.id;
+
+  try {
+    const result = await client.query(
+      'DELETE FROM movie WHERE movie_id = $1 RETURNING *',
+      [movieId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).send('<h1>Sorry, no movie found with that ID, try another ID!</h1>');
+    }
+
+    res.json({ message: `Movie with ID ${movieId} removed!` });
+  } catch (err) {
+    console.error('Error removing movie', err);
+    res.status(500).send('Error removing movie');
+  }
+});
+
+// GENRES!!!!!!!!!!!!!!!!!
 
 app.get('/genres', async (req, res) => {
   try {
@@ -92,10 +115,10 @@ app.get('/genres', async (req, res) => {
   }
 });
 
+//add genre
 app.post('/genres', express.json(), async (req, res) => {
   const { genre_name } = req.body;
 
-  //add genre
   try {
     const result = await client.query(
       'INSERT INTO genre (genre_name) VALUES ($1) RETURNING *',
