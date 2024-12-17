@@ -131,3 +131,31 @@ app.post('/genres', express.json(), async (req, res) => {
     res.status(500).send('Error adding genre');
   }
 });
+
+//USER!!!!!!!!!!!!!!!!!!
+
+//add user
+app.post('/registeredusers', async (req, res) => {
+  const { first_name, last_name, username, password, user_birthyear } = req.body;
+
+  //all fields check
+    if (!first_name || !last_name || !username || !password || !user_birthyear) {
+      return res.status(400).send('Fill all fields');
+    }
+  
+    try {
+      const result = await client.query(
+        `INSERT INTO registered_user (first_name, last_name, username, password, user_birthyear)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [first_name, last_name, username, password, user_birthyear]
+      );
+      
+      res.status(201).json({
+        message: 'User registered! :)',
+        user: result.rows[0],
+      });
+    } catch (err) {
+      console.error('Error registering user', err);
+      res.status(500).send('Error registering user');
+    }
+  });
