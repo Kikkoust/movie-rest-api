@@ -30,7 +30,7 @@ client.connect().then(() => {
 });
 
 app.get('/', (req, res) => {
-  res.send('<h1>This is the movie API made by MM TIK23SP!</h1><br /><p>/movies</p>');
+  res.send('<h1>This is the movie API made by MM TIK23SP!</h1><br /><p>/movies</p><br /><p>/genres</p>');
 });
 
 //MOVIES 
@@ -66,6 +66,7 @@ app.get('/movies/:id', async (req, res) => {
 app.post('/movies', async (req, res) => {
   const { movie_name, release_year, genre_id } = req.body;
 
+  //add movie
   try {
     const result = await client.query(
       'INSERT INTO movie (movie_name, release_year, genre_id) VALUES ($1, $2, $3) RETURNING *',
@@ -76,5 +77,34 @@ app.post('/movies', async (req, res) => {
   } catch (err) {
     console.error('Error adding movie', err);
     res.status(500).json({ error: 'Error adding movie' });
+  }
+});
+
+// GENRES
+
+app.get('/genres', async (req, res) => {
+  try {
+    const result = await client.query('SELECT * FROM genre');
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error', err);
+    res.status(500).send('Error');
+  }
+});
+
+app.post('/genres', express.json(), async (req, res) => {
+  const { genre_name } = req.body;
+
+  //add genre
+  try {
+    const result = await client.query(
+      'INSERT INTO genre (genre_name) VALUES ($1) RETURNING *',
+      [genre_name]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error adding genre', err);
+    res.status(500).send('Error adding genre');
   }
 });
