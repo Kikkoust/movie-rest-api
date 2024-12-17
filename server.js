@@ -30,7 +30,7 @@ client.connect().then(() => {
 });
 
 app.get('/', (req, res) => {
-  res.send('<h1>This is the movie API made by MM TIK23SP!</h1><br /><p>/movies</p><br /><p>/movies?page=(page number)</p><br /><p>/movies/search?keyword=(keyword)</p><br /><p>/genres</p>');
+  res.send('<h1>This is the movie API made by MM TIK23SP!</h1><br /><p>/movies</p><br /><p>/movies?page=(page number)</p><br /><p>/movies/search?keyword=(keyword)</p><br /><p>/genres</p><br /><p>/favorites/(username)');
 });
 
 //MOVIES!!!!!!!!!!!!!!
@@ -277,5 +277,41 @@ app.post('/favorites', async (req, res) => {
   } catch (err) {
     console.error('Error adding favorite movie', err);
     res.status(500).send('Error adding favorite movie');
+  }
+});
+
+//favorite movie by username
+app.get('/favorites/:username', async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    //check user
+    const userResult = await client.query(
+      'SELECT user_id FROM registered_user WHERE username = $1', [username]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).send('Register first! :)');
+    }
+
+    const user_id = userResult.rows[0].user_id;
+
+    //get user favorite movies
+    const result = await client.query(
+      'SELECT m.movie_name, m.release_year, m.genre_id FROM favorite_movie f ' +
+      'JOIN movie m ON f.movie_id = m.movie_id ' +
+      'WHERE f.user_id = $1', [user_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).send("User doesn't have favorite movies yet! :)");
+    }
+
+    //return all favorite movies
+    res.status(200).json(result.rows);
+
+  } catch (err) {
+    console.error('Error', err);
+    res.status(500).send('Error');
   }
 });
